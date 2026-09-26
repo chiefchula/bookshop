@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% block content %}
+<h3>Sales Report</h3>
+<form class="row g-2 my-3">
+  <div class="col-auto"><input type="date" name="start" value="{{ start or '' }}" class="form-control"></div>
+  <div class="col-auto"><input type="date" name="end" value="{{ end or '' }}" class="form-control"></div>
+  <div class="col-auto"><button class="btn btn-outline-secondary">Filter</button></div>
+</form>
+
+<div class="row g-3 mb-4">
+  <div class="col-md-6"><div class="card p-3"><div class="text-muted">Total Sales</div>
+    <div class="fs-3">KES {{ '%.2f'|format(totals[0]) }}</div></div></div>
+  <div class="col-md-6"><div class="card p-3"><div class="text-muted">Total Profit</div>
+    <div class="fs-3">KES {{ '%.2f'|format(totals[1]) }}</div></div></div>
+</div>
+
+<h5>Profit by Item</h5>
+<table class="table table-sm">
+  <thead><tr><th>Item</th><th>Units</th><th>Revenue</th><th>Profit</th></tr></thead>
+  <tbody>
+    {% for t, qty, rev, prof in by_item %}
+    <tr><td>{{ t }}</td><td>{{ qty }}</td>
+      <td>{{ '%.2f'|format(rev) }}</td><td>{{ '%.2f'|format(prof or 0) }}</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<h5>Profit by Category</h5>
+<table class="table table-sm">
+  <thead><tr><th>Category</th><th>Units</th><th>Revenue</th><th>Profit</th></tr></thead>
+  <tbody>
+    {% for c, qty, rev, prof in by_category %}
+    <tr><td>{{ c }}</td><td>{{ qty }}</td>
+      <td>{{ '%.2f'|format(rev) }}</td><td>{{ '%.2f'|format(prof or 0) }}</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<h5>Recent Sales</h5>
+<table class="table table-sm">
+  <thead><tr><th>Ref</th><th>Customer</th><th>Total</th><th>Profit</th><th>When</th><th></th></tr></thead>
+  <tbody>
+    {% for s in sales %}
+    <tr><td>{{ s.reference }}</td><td>{{ s.customer_name }}</td>
+      <td>{{ '%.2f'|format(s.total) }}</td><td>{{ '%.2f'|format(s.profit) }}</td>
+      <td>{{ s.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+      <td><a href="{{ url_for('receipt', sale_id=s.id) }}">View</a></td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

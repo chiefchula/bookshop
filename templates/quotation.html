@@ -1,0 +1,165 @@
+{% extends 'base.html' %}
+{% block content %}
+
+{% if mode == 'list' %}
+<h3>Quotations</h3>
+<a class="btn btn-success mb-3" href="{{ url_for('quotation_new') }}">+ New Quotation</a>
+<table class="table">
+  <thead>
+    <tr><th>Ref</th><th>Customer</th><th>Total</th><th>Status</th><th>Created</th><th></th></tr>
+  </thead>
+  <tbody>
+    {% for q in quotes %}
+    <tr>
+      <td>{{ q.reference }}</td>
+      <td>{{ q.customer_name }}</td>
+      <td>{{ '%.2f'|format(q.total) }}</td>
+      <td>{{ q.status }}</td>
+      <td>{{ q.created_at.strftime('%Y-%m-%d') }}</td>
+      <td><a href="{{ url_for('quotation_edit', qid=q.id) }}">Open</a></td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+{% elif mode == 'new' %}
+<h3>New Quotation</h3>
+<form method="post" class="col-md-6">
+  {{ form.hidden_tag() }}
+  {% for f in form if f.name not in ['csrf_token', 'submit'] %}
+    <div class="mb-3">{{ f.label(class='form-label') }} {{ f(class='form-control') }}</div>
+  {% endfor %}
+  <button class="btn btn-primary">Create</button>
+</form>
+
+{% else %}
+<div class="d-print-none mb-3">
+  <a href="{{ url_for('quotations') }}" class="btn btn-sm btn-outline-secondary">← Back to list</a>
+  <button class="btn btn-sm btn-primary" onclick="window.print()">Print</button>
+</div>
+
+<div class="mx-auto" style="max-width: 720px;">
+  {% include '_letterhead.html' %}
+
+  <div class="text-center mb-2">
+    <h5 class="mb-0">QUOTATION</h5>
+    <div class="small text-muted">Ref: {{ q.reference }}</div>
+  </div>
+
+  <div class="row small mb-3">
+    <div class="col-6">
+      <strong>To:</strong><br>
+      {{ q.customer_name }}<br>
+      {{ q.customer_contact or '' }}
+    </div>
+    <div class="col-6 text-end">
+      <strong>Date:</strong> {{ q.created_at.strftime('%Y-%m-%d') }}<br>
+      {% if q.valid_until %}
+        <strong>Valid Until:</strong> {{ q.valid_until.strftime('%Y-%m-%d') }}
+      {% endif %}
+    </div>
+  </div>
+
+  <table class="table table-sm">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Description</th>
+        <th class="text-end">Qty</th>
+        <th class="text-end">Unit Price (KES)</th>
+        <th class="text-end">Amount (KES)</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for li in q.items %}
+      <tr>
+        <td>{{ loop.index }}</td>
+        <td>{{ li.item.title }}</td>
+        <td class="text-end">{{ li.quantity }}</td>
+        <td class="text-end">{{ '%.2f'|format(li.unit_price) }}</td>
+        <td class="text-end">{{ '%.2f'|format(li.unit_price * li.quantity) }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+    <tfoot>
+      <tr>
+        <th colspan="4" class="text-end">TOTAL</th>
+        <th class="text-end">{{ '%.2f'|format(q.total) }}</th>
+      </tr>
+    </tfoot>
+  </table>
+
+  <div class="small mt-3">
+    <strong>Terms &amp; Conditions</strong>
+    <ul class="mb-0">
+      <li>Prices are valid for the period indicated above.</li>
+      <li>Goods remain the property of ZABACH ENTERPRISES LIMITED until fully paid.</li>
+      <li>Delivery timelines to be agreed upon on acceptance of this quotation.</li>
+    </ul>
+  </div>
+
+  <div class="row mt-5">
+    <div class="col-6">
+      <div class="border-top pt-1 small">Prepared by: {{ q.created_by_user.username if q.created_by_user else '' }}</div>
+    </div>
+    <div class="col-6">
+      <div class="border-top pt-1 small">Customer Signature &amp; Stamp</div>
+    </div>
+  </div>
+</div>
+
+<div class="row mt-5 d-print-none">
+  <div class="col-md-4">
+    <div class="card p-3">
+      <h6>Add Line</h6>
+      <form method="post" id="addLineForm">
+        <div class="position-relative mb-2">
+          <div class="item-picker" data-source="/api/items/search">
+            <input type="text" class="form-control item-picker-input"
+                  placeholder="Search item..." autocomplete="off">
+            <input type="hidden" name="item_id" class="item-picker-id">
+            <div class="list-group item-picker-results position-absolute w-100"
+                style="display:none; z-index: 1050; max-height: 260px; overflow-y: auto;"></div>
+          </div>
+        </div>
+        <input type="number" name="quantity" value="1" min="1" class="form-control mb-2">
+        <button class="btn btn-primary w-100" name="add_line" value="1">Add</button>
+      </form>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card p-3">
+      <h6>Convert</h6>
+      <form method="post">
+        <button class="btn btn-success w-100" name="convert" value="1">
+          Convert to Sale
+        </button>
+      </form>
+      <p class="small text-muted mt-2 mb-0">
+        Loads the quotation lines into a new sale cart.
+      </p>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card p-3">
+      <h6>Remove Line</h6>
+      <p class="small text-muted mb-2">Use the × button below to remove a line:</p>
+      <table class="table table-sm mb-0">
+        {% for li in q.items %}
+        <tr>
+          <td>{{ li.item.title }} × {{ li.quantity }}</td>
+          <td class="text-end">
+            <form method="post">
+              <input type="hidden" name="line_id" value="{{ li.id }}">
+              <button class="btn btn-sm btn-outline-danger"
+                      name="remove_line" value="1">×</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </table>
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

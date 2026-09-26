@@ -1,0 +1,142 @@
+{% extends 'base.html' %}
+{% block content %}
+<h3>Physical Inventory Count</h3>
+<p class="text-muted">Submit actual counts. Manager approval required before the system updates.</p>
+
+<form method="post" class="col-md-6" id="countForm" autocomplete="off">
+  {{ form.hidden_tag() }}
+
+  <div class="mb-3 position-relative">
+    <label class="form-label">Item</label>
+    <input type="text" id="itemSearch" class="form-control"
+           placeholder="Start typing a title or brand…" autocomplete="off">
+    <input type="hidden" name="item_id" id="itemIdInput" value="">
+    <div id="itemResults" class="list-group position-absolute w-100 shadow-sm"
+         style="display:none; z-index: 1050; max-height: 320px; overflow-y: auto;"></div>
+    <div class="form-text">Type at least 2 characters, then click a result.</div>
+    <div class="text-danger small" id="itemError"></div>
+    <div class="text-success small" id="pickedInfo"></div>
+  </div>
+
+  <div class="mb-3">
+    {{ form.counted_quantity.label(class='form-label') }}
+    {{ form.counted_quantity(class='form-control') }}
+  </div>
+  <div class="mb-3">
+    {{ form.note.label(class='form-label') }}
+    {{ form.note(class='form-control', rows=2) }}
+  </div>
+
+  <button type="submit" class="btn btn-primary" id="submitBtn" disabled>Submit</button>
+</form>
+
+<hr>
+<h5>My recent submissions</h5>
+<table class="table table-sm">
+  <thead><tr><th>Item</th><th>System</th><th>Counted</th><th>Status</th><th>When</th></tr></thead>
+  <tbody>
+    {% for c in my_counts %}
+    <tr>
+      <td>{{ c.item.title }}</td>
+      <td>{{ c.system_quantity }}</td>
+      <td>{{ c.counted_quantity }}</td>
+      <td>
+        {% if c.status == 'pending' %}<span class="badge bg-warning">pending</span>
+        {% elif c.status == 'approved' %}<span class="badge bg-success">approved</span>
+        {% else %}<span class="badge bg-secondary">rejected</span>{% endif %}
+      </td>
+      <td>{{ c.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<script>
+(function () {
+  var searchInput = document.getElementById('itemSearch');
+  var hiddenId    = document.getElementById('itemIdInput');
+  var results     = document.getElementById('itemResults');
+  var info        = document.getElementById('pickedInfo');
+  var errorBox    = document.getElementById('itemError');
+  var submitBtn   = document.getElementById('submitBtn');
+  var form        = document.getElementById('countForm');
+  if (!searchInput || !hiddenId) return;
+
+  var timer = null;
+  function hide() { results.style.display = 'none'; }
+  function clearError() { errorBox.textContent = ''; }
+
+  function render(items) {
+    if (!items.length) {
+      results.innerHTML = '<div class="list-group-item small text-muted">No matches</div>';
+      results.style.display = 'block';
+      return;
+    }
+    var html = '';
+    for (var i = 0; i < items.length; i++) {
+      var it = items[i];
+      var titleSafe = String(it.title).replace(/"/g, '&quot;');
+      html += '<button type="button" class="list-group-item list-group-item-action"'
+            + ' data-id="' + it.id + '"'
+            + ' data-title="' + titleSafe + '"'
+            + ' data-qty="' + it.quantity + '">'
+            + '<div class="d-flex justify-content-between">'
+            + '<span><strong>' + it.title + '</strong>'
+            + (it.brand ? ' <span class="text-muted">— ' + it.brand + '</span>' : '')
+            + '</span>'
+            + '<span class="text-muted small">qty ' + it.quantity + '</span>'
+            + '</div></button>';
+    }
+    results.innerHTML = html;
+    results.style.display = 'block';
+  }
+
+  function search(q) {
+    fetch('/api/items/search?stocked=1&q=' + encodeURIComponent(q))
+      .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+      .then(render)
+      .catch(function (err) {
+        results.innerHTML = '<div class="list-group-item small text-danger">Search failed: ' + err.message + '</div>';
+        results.style.display = 'block';
+      });
+  }
+
+  searchInput.addEventListener('input', function () {
+    var q = searchInput.value.trim();
+    hiddenId.value = '';
+    info.textContent = '';
+    clearError();
+    submitBtn.disabled = true;
+    clearTimeout(timer);
+    if (q.length < 2) { hide(); return; }
+    timer = setTimeout(function () { search(q); }, 200);
+  });
+
+  results.addEventListener('click', function (e) {
+    var btn = e.target.closest('button[data-id]');
+    if (!btn) return;
+    hiddenId.value = btn.getAttribute('data-id');
+    searchInput.value = btn.getAttribute('data-title');
+    info.innerHTML = '✓ <strong>' + btn.getAttribute('data-title')
+                   + '</strong> — system says ' + btn.getAttribute('data-qty') + ' in stock';
+    submitBtn.disabled = false;
+    clearError();
+    hide();
+    document.querySelector('[name="counted_quantity"]').value = btn.getAttribute('data-qty');
+    document.querySelector('[name="counted_quantity"]').focus();
+  });
+
+  document.addEventListener('click', function (e) {
+    if (!searchInput.contains(e.target) && !results.contains(e.target)) hide();
+  });
+
+  form.addEventListener('submit', function (e) {
+    if (!hiddenId.value) {
+      e.preventDefault();
+      errorBox.textContent = 'Please click an item in the dropdown first.';
+      searchInput.focus();
+    }
+  });
+})();
+</script>
+{% endblock %}

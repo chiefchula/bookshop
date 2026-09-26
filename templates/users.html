@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+{% block content %}
+<h3>User Management</h3>
+
+{% if pending_users %}
+<div class="alert alert-warning">
+  <strong>{{ pending_users|length }}</strong> account(s) awaiting approval.
+</div>
+<table class="table table-bordered">
+  <thead>
+    <tr>
+      <th>Username</th>
+      <th>Email</th>
+      <th>Registered</th>
+      <th style="width: 200px;">Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for u in pending_users %}
+    <tr>
+      <td>{{ u.username }}</td>
+      <td>{{ u.email }}</td>
+      <td>{{ u.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+      <td>
+        <form method="post" action="{{ url_for('user_approve', uid=u.id) }}" class="d-inline">
+          <button class="btn btn-sm btn-success">Approve</button>
+        </form>
+        <form method="post" action="{{ url_for('user_reject', uid=u.id) }}" class="d-inline"
+              onsubmit="return confirm('Reject and delete {{ u.username }}?');">
+          <button class="btn btn-sm btn-outline-danger">Reject</button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<div class="alert alert-success">
+  No accounts waiting for approval.
+</div>
+{% endif %}
+
+<h5 class="mt-4">Create User Directly</h5>
+<div class="row">
+  <div class="col-md-4">
+    <div class="card p-3">
+      <form method="post">
+        {{ form.hidden_tag() }}
+        {% for f in form if f.name not in ['csrf_token', 'submit'] %}
+          <div class="mb-2">
+            {{ f.label(class='form-label') }} {{ f(class='form-control') }}
+            {% for e in f.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+          </div>
+        {% endfor %}
+        <button class="btn btn-primary">Create</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="col-md-8">
+    <h6>All Users</h6>
+    <table class="table table-bordered">
+      <thead>
+        <tr>
+          <th>Username</th>
+          <th>Email</th>
+          <th>Role</th>
+          <th>Approved</th>
+          <th>Status</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for u in users %}
+        <tr>
+          <td>{{ u.username }}</td>
+          <td>{{ u.email }}</td>
+          <td>{{ u.role }}</td>
+          <td>
+            {% if u.approver %}by {{ u.approver.username }}{% else %}—{% endif %}
+          </td>
+          <td>
+            {% if u.active %}<span class="badge bg-success">active</span>
+            {% else %}<span class="badge bg-secondary">inactive</span>{% endif %}
+          </td>
+          <td>
+            <form method="post" action="{{ url_for('user_toggle', uid=u.id) }}">
+              <button class="btn btn-sm btn-outline-secondary">
+                {{ 'Deactivate' if u.active else 'Activate' }}
+              </button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

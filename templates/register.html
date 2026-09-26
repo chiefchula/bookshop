@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-5">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h4>Register</h4>
+        <p class="text-muted small">Your account will need manager approval before you can log in.</p>
+        <form method="post">
+          {{ form.hidden_tag() }}
+          {% for f in form if f.name not in ['csrf_token', 'submit'] %}
+            <div class="mb-3">
+              {{ f.label(class='form-label') }} {{ f(class='form-control') }}
+              {% for e in f.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+            </div>
+          {% endfor %}
+          <button class="btn btn-primary w-100">Register</button>
+        </form>
+        <div class="text-center mt-3">
+          <a href="{{ url_for('login') }}">Already have an account? Sign in</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

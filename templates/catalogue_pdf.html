@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>ZABACH Price List</title>
+  <style>
+    @page {
+      size: A4;
+      margin: 15mm 12mm;
+      @bottom-center {
+        content: "Page " counter(page) " of " counter(pages);
+        font-size: 9pt;
+        color: #888;
+      }
+      @bottom-right {
+        content: "ZABACH ENTERPRISES LTD";
+        font-size: 8pt;
+        color: #888;
+      }
+    }
+
+    body {
+      font-family: "DejaVu Sans", Arial, sans-serif;
+      font-size: 9.5pt;
+      color: #222;
+      margin: 0;
+    }
+
+    /* ---- Letterhead ---- */
+    .letterhead {
+      text-align: center;
+      margin-bottom: 6mm;
+      padding-bottom: 4mm;
+      border-bottom: 2px solid #1f3a68;
+    }
+    .letterhead .name {
+      font-family: Georgia, serif;
+      font-size: 20pt;
+      color: #1f3a68;
+      letter-spacing: 1px;
+      font-weight: bold;
+    }
+    .letterhead .tagline {
+      font-style: italic;
+      color: #555;
+      margin-top: 2px;
+      font-size: 10pt;
+    }
+    .letterhead .contact {
+      margin-top: 4px;
+      font-size: 9pt;
+      color: #333;
+      line-height: 1.35;
+    }
+
+    /* ---- Meta line ---- */
+    .meta {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 4mm;
+      font-size: 9pt;
+      color: #555;
+    }
+
+    h1.doc-title {
+      font-size: 14pt;
+      text-align: center;
+      margin: 4mm 0 2mm;
+      color: #1f3a68;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+    }
+
+    /* ---- Category block ---- */
+    .category {
+      margin-top: 6mm;
+      page-break-inside: auto;
+    }
+    .category h2 {
+      font-size: 11.5pt;
+      color: #1f3a68;
+      background: #eef2f8;
+      padding: 4px 8px;
+      margin: 0 0 3px;
+      border-left: 4px solid #1f3a68;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    /* ---- Items table ---- */
+    table.items {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 9pt;
+    }
+    table.items thead th {
+      background: #1f3a68;
+      color: #fff;
+      text-align: left;
+      padding: 4px 6px;
+      font-size: 8.5pt;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    table.items tbody td {
+      padding: 3px 6px;
+      border-bottom: 1px solid #e8ebf0;
+      vertical-align: top;
+    }
+    table.items tbody tr:nth-child(even) {
+      background: #fafbfd;
+    }
+    .col-num  { width: 6%; text-align: right; }
+    .col-item { width: 55%; }
+    .col-brand{ width: 20%; }
+    .col-unit { width: 8%;  text-align: center; }
+    .col-price{ width: 11%; text-align: right; white-space: nowrap; }
+
+    /* ---- Footer note ---- */
+    .footer-note {
+      margin-top: 8mm;
+      padding-top: 3mm;
+      border-top: 1px solid #ccc;
+      font-size: 8pt;
+      color: #666;
+      text-align: center;
+    }
+
+    /* ---- Page break control ---- */
+    .category {
+      page-break-inside: auto;
+    }
+    table.items tr {
+      page-break-inside: avoid;
+    }
+    thead {
+      display: table-header-group;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="letterhead">
+    <div class="name">ZABACH ENTERPRISES LIMITED</div>
+    <div class="tagline">Efficient services to institutions</div>
+    <div class="contact">
+      P.O. BOX 823-80108 KILIFI &nbsp;|&nbsp; Email: info@zabach.co.ke<br>
+      Tel: 0772058479 / +254726138657<br>
+      Location: Kilifi stage opp. St Patrick church gate<br>
+      PIN: P051619559Z
+    </div>
+  </div>
+
+  <h1 class="doc-title">Price List</h1>
+
+  <div class="meta">
+    <span>Generated: {{ generated_at.strftime('%d %B %Y') }}</span>
+    <span>
+      {% if q %}Filtered by "{{ q }}" — {% endif %}
+      {{ grouped.values() | map('length') | sum }} item(s)
+    </span>
+  </div>
+
+  {% for category_name, items in grouped.items() %}
+  <div class="category">
+    <h2>{{ category_name }}</h2>
+    <table class="items">
+      <thead>
+        <tr>
+          <th class="col-num">#</th>
+          <th class="col-item">Item</th>
+          <th class="col-brand">Brand</th>
+          <th class="col-unit">Unit</th>
+          <th class="col-price">Price (KES)</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for it in items %}
+        <tr>
+          <td class="col-num">{{ loop.index }}</td>
+          <td class="col-item">{{ it.title }}</td>
+          <td class="col-brand">{{ it.brand or '' }}</td>
+          <td class="col-unit">{{ it.unit or 'EACH' }}</td>
+          <td class="col-price">{{ '%.2f'|format(it.price) }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endfor %}
+
+  <div class="footer-note">
+    Prices are subject to change without notice.
+    Valid as of {{ generated_at.strftime('%d %B %Y') }}.
+  </div>
+
+</body>
+</html>

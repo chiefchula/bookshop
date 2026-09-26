@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% block content %}
+<h3>Inventory Count Approvals</h3>
+<h5 class="mt-4">Pending</h5>
+<table class="table">
+  <thead><tr><th>Item</th><th>System Qty</th><th>Counted</th><th>Difference</th><th>By</th><th>Note</th><th></th></tr></thead>
+  <tbody>
+  {% for c in pending %}
+    <tr>
+      <td>{{ c.item.title }}</td>
+      <td>{{ c.system_quantity }}</td>
+      <td>{{ c.counted_quantity }}</td>
+      <td class="{{ 'text-danger' if c.counted_quantity != c.system_quantity else 'text-muted' }}">
+        {{ c.counted_quantity - c.system_quantity }}
+      </td>
+      <td>{{ c.creator.username if c.creator else '—' }}</td>
+      <td>{{ c.note or '' }}</td>
+      <td>
+        <form method="post" action="{{ url_for('resolve_count', cid=c.id, action='approve') }}" class="d-inline">
+          <button class="btn btn-sm btn-success">Approve</button></form>
+        <form method="post" action="{{ url_for('resolve_count', cid=c.id, action='reject') }}" class="d-inline">
+          <button class="btn btn-sm btn-outline-danger">Reject</button></form>
+      </td>
+    </tr>
+  {% else %}
+    <tr><td colspan="7" class="text-muted">No pending counts.</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+
+<h5 class="mt-4">Recent History</h5>
+<table class="table table-sm">
+  <thead><tr><th>Item</th><th>Counted</th><th>Status</th><th>By</th><th>Resolved At</th></tr></thead>
+  <tbody>
+  {% for c in resolved %}
+    <tr><td>{{ c.item.title }}</td><td>{{ c.counted_quantity }}</td>
+      <td>{{ c.status }}</td><td>{{ c.creator.username if c.creator else '—' }}</td>
+      <td>{{ c.resolved_at.strftime('%Y-%m-%d %H:%M') if c.resolved_at else '' }}</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

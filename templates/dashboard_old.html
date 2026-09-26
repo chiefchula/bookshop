@@ -1,0 +1,130 @@
+{% extends 'base.html' %}
+{% block content %}
+<h3>Dashboard</h3>
+<div class="row g-3 mt-3">
+  <div class="col-md">
+    <div class="card p-3">
+      <div class="text-muted">Total Items in Stock</div>
+      <div class="fs-3">{{ total_items }}</div>
+    </div>
+  </div>
+  <div class="col-md">
+    <div class="card p-3">
+      <div class="text-muted">Stock Value</div>
+      <div class="fs-3">KES {{ '%.2f'|format(total_value) }}</div>
+    </div>
+  </div>
+  <div class="col-md">
+    <div class="card p-3">
+      <div class="text-muted">Catalogue / Stocked</div>
+      <div class="fs-3">{{ catalogue_total }} / {{ stocked_total }}</div>
+      <div class="small text-muted">products in price list / on shelf</div>
+    </div>
+  </div>
+  <div class="col-md">
+    <div class="card p-3">
+      <div class="text-muted">Today's Sales</div>
+      <div class="fs-3">KES {{ '%.2f'|format(today_sales) }}</div>
+    </div>
+  </div>
+  <div class="col-md">
+    <div class="card p-3">
+      <div class="text-muted">Today's Profit</div>
+      <div class="fs-3">KES {{ '%.2f'|format(today_profit) }}</div>
+    </div>
+  </div>
+</div>
+
+{% if current_user.is_manager and pending_counts %}
+<div class="alert alert-warning mt-4">
+  <strong>{{ pending_counts }}</strong> inventory count(s) awaiting your approval.
+  <a href="{{ url_for('approvals') }}" class="btn btn-sm btn-warning ms-2">Review</a>
+</div>
+{% endif %}
+
+<div class="row mt-4">
+  <div class="col-md-6">
+  <div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <span>
+        <strong>Low Stock</strong>
+        {% if low_stock %}
+          <span class="badge bg-danger ms-1">{{ low_stock|length }}</span>
+        {% endif %}
+      </span>
+      <a href="{{ url_for('inventory') }}" class="small">View inventory →</a>
+    </div>
+    <div class="card-body p-0">
+      {% if not low_stock %}
+        <div class="text-center text-success py-4">
+          <div style="font-size: 2rem;">✓</div>
+          <div class="small">All items above reorder level</div>
+        </div>
+      {% else %}
+        {% set critical = low_stock | selectattr('quantity', 'equalto', 0) | list %}
+        {% set warnings = low_stock | rejectattr('quantity', 'equalto', 0) | list %}
+
+        {% if critical %}
+          <div class="px-3 pt-2 pb-1 small text-uppercase text-danger fw-bold">
+            Out of stock — {{ critical|length }}
+          </div>
+          {% for i in critical %}
+            <div class="d-flex justify-content-between align-items-center px-3 py-2 border-top">
+              <div class="text-truncate" style="max-width: 60%;">
+                <div class="fw-semibold text-truncate">{{ i.title }}</div>
+                <div class="small text-muted">{{ i.brand or (i.category.name if i.category else '') }}</div>
+              </div>
+              <div class="text-end">
+                <span class="badge bg-danger me-2">0</span>
+                {% if current_user.is_manager %}
+                <a class="btn btn-sm btn-outline-danger"
+                   href="{{ url_for('stock_new') }}?item_id={{ i.id }}">Restock</a>
+                   {% endif %}
+              </div>
+            </div>
+          {% endfor %}
+        {% endif %}
+
+        {% if warnings %}
+          <div class="px-3 pt-3 pb-1 small text-uppercase text-warning fw-bold">
+            Below reorder level — {{ warnings|length }}
+          </div>
+          {% for i in warnings %}
+            {% set pct = (i.quantity / i.reorder_level * 100) | round(0) | int %}
+            <div class="px-3 py-2 border-top">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <div class="text-truncate" style="max-width: 60%;">
+                  <div class="fw-semibold text-truncate">{{ i.title }}</div>
+                  <div class="small text-muted">{{ i.brand or (i.category.name if i.category else '') }}</div>
+                </div>
+                <div class="text-end small">
+                  <strong>{{ i.quantity }}</strong> / {{ i.reorder_level }}
+                </div>
+              </div>
+              <div class="progress" style="height: 4px;">
+                <div class="progress-bar bg-warning"
+                     role="progressbar"
+                     style="width: {{ pct if pct < 100 else 100 }}%;"></div>
+              </div>
+            </div>
+          {% endfor %}
+        {% endif %}
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+
+  <div class="col-md-6">
+    <h5>Most Bought (top 5)</h5>
+    <table class="table table-sm">
+      <thead><tr><th>Title</th><th>Units Sold</th></tr></thead>
+      <tbody>
+        {% for item, total in most_bought %}
+        <tr><td>{{ item.title }}</td><td>{{ total }}</td></tr>
+        {% else %}<tr><td colspan="2" class="text-muted">No sales yet</td></tr>{% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

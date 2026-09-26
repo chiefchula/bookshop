@@ -1,0 +1,123 @@
+body { background: #f7f8fa; }
+.card { border: 1px solid #e6e8eb; border-radius: 10px; }
+
+.letterhead {
+  padding-bottom: 8px;
+  margin-bottom: 12px;
+}
+
+/* Only show these when printing */
+@media print {
+  nav, .navbar, .btn, footer, .d-print-none { display: none !important; }
+  body { background: white; }
+  .container { max-width: 100% !important; }
+  a { color: black; text-decoration: none; }
+  table { font-size: 11pt; }
+}
+
+/* A4-friendly print area */
+@page {
+  size: A4;
+  margin: 15mm;
+}
+
+.navbar-dark .navbar-nav .nav-link.active {
+  color: #ffffff;
+  background-color: rgba(255, 255, 255, 0.15);
+  border-radius: 6px;
+  font-weight: 600;
+}
+
+.navbar-dark .navbar-nav .nav-link {
+  transition: background-color 0.15s ease;
+}
+
+.navbar-dark .navbar-nav .nav-link:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+}
+
+/* ---------- Thermal receipt ---------- */
+.receipt-wrapper {
+  max-width: 340px;    /* ~80mm thermal paper */
+}
+
+.receipt {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 12px;
+  line-height: 1.35;
+  background: #fff;
+  padding: 12px 8px;
+  border: 1px solid #ddd;
+  color: #000;
+}
+
+.receipt .letterhead img,
+.receipt .letterhead h2 {
+  max-height: 60px;
+}
+.receipt .letterhead hr {
+  margin: 6px 0;
+  border-top: 1px solid #000;
+}
+
+.receipt-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+}
+.receipt-table th,
+.receipt-table td {
+  padding: 2px 0;
+}
+.receipt-table thead th {
+  border-bottom: 1px dashed #000;
+  padding-bottom: 4px;
+}
+.receipt-table tbody td {
+  border: none;
+}
+
+.dashed-divider {
+  border-top: 1px dashed #000;
+  margin: 6px 0;
+}
+
+/* When printing: hide everything except the receipt */
+@media print {
+  nav, .navbar, .btn, footer, .d-print-none, hr:not(.receipt hr) {
+    display: none !important;
+  }
+  body, html {
+    background: #fff !important;
+    margin: 0;
+    padding: 0;
+  }
+  .container,
+  .container-fluid {
+    max-width: 100% !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  .receipt-wrapper {
+    max-width: 80mm;
+    margin: 0 auto;
+  }
+  .receipt {
+    border: none;
+    padding: 0;
+    font-size: 11px;
+  }
+  @page {
+    size: 80mm auto;   /* 80mm width, auto height */
+    margin: 3mm;
+  }
+}
+
+.letterhead img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 0 auto;
+}

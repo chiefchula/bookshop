@@ -1,0 +1,19 @@
+laboratory: no price for 'item name' (raw='unit price')
+laboratory: no price for 'ALUMINIUM FOIL ROLL FAY' (raw='till')
+laboratory: no price for 'DROPPER GLASS 7CM WITH TEAT' (raw='ro')
+laboratory: no price for 'WATCH GLASS 100MM' (raw=None)
+laboratory: no price for 'measuring cylinder plastic 50ml' (raw=' ')
+stationaries: no price for 'ITEM DISCRIPTION' (raw='NEW PRICE')
+exercise: no price for 'ITEM DISCRIPTION' (raw='NEW PRICE')
+home science: no price for 'ITEM DISCRIPTION' (raw='NEW PRICE')
+agriculture: no price for 'ITEM DISCRIPTION' (raw='NEW PRICE')
+art and craft: no price for 'ITEM DISCRIPTION' (raw='NEW PRICE')
+music: no price for 'ITEM DISCRIPTION' (raw='NEW PRICE')
+office equipment: no price for 'ITEM DISCRIPTION' (raw='NEW PRICE')
+Skipped (dup): EPSON PRINTER L3210
+sports practical material: no price for 'ITEM DISCRIPTION' (raw='NEW PRICE')
+text books: no price for 'ITEM DISCRIPTION' (raw='NEW PRICE')
+misc row not routed: ITEM DISCRIPTION
+misc: no price for 'BOWL MEDIUM SIZE' (raw=110165220)
+misc row not routed: PELLETTES
+Skipped (dup): EPSON PRINTER L3210

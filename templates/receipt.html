@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="receipt-wrapper mx-auto">
+  <div class="receipt" id="receipt">
+        <div class="text-center">
+      <div class="fw-bold" style="font-size: 13px; letter-spacing: 0.5px;">
+        ZABACH ENTERPRISES LTD
+      </div>
+      <div style="font-size: 10px;">P.O. BOX 823-80108 KILIFI</div>
+      <div style="font-size: 10px;">Email: info@zabach.co.ke</div>
+      <div style="font-size: 10px;">Tel: 0772058479 / +254726138657</div>
+      <div style="font-size: 10px;">PIN: P051619559Z</div>
+    </div>
+    <div class="dashed-divider"></div>
+
+    <div class="text-center mb-2">
+      <div class="fw-bold">SALES RECEIPT</div>
+    </div>
+
+    <div class="d-flex justify-content-between small">
+      <span>Receipt:</span>
+      <span>{{ sale.reference }}</span>
+    </div>
+    <div class="d-flex justify-content-between small">
+      <span>Date:</span>
+      <span>{{ sale.created_at.strftime('%Y-%m-%d %H:%M') }}</span>
+    </div>
+    <div class="d-flex justify-content-between small">
+      <span>Customer:</span>
+      <span>{{ sale.customer_name }}</span>
+    </div>
+    <div class="d-flex justify-content-between small">
+      <span>Served by:</span>
+      <span>{{ sale.cashier.username if sale.cashier else '' }}</span>
+    </div>
+
+    <div class="dashed-divider"></div>
+
+    <table class="receipt-table">
+      <thead>
+        <tr>
+          <th class="text-start">Item</th>
+          <th class="text-end">Qty</th>
+          <th class="text-end">Price</th>
+          <th class="text-end">Amt</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for li in sale.items %}
+        <tr>
+          <td>{{ li.item.title }}</td>
+          <td class="text-end">{{ li.quantity }}</td>
+          <td class="text-end">{{ '%.2f'|format(li.unit_price) }}</td>
+          <td class="text-end">{{ '%.2f'|format(li.unit_price * li.quantity) }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <div class="dashed-divider"></div>
+
+    <div class="d-flex justify-content-between fw-bold">
+      <span>TOTAL</span>
+      <span>KES {{ '%.2f'|format(sale.total) }}</span>
+    </div>
+
+    <div class="dashed-divider"></div>
+
+    <div class="text-center small mt-2">
+      <div>Thank you for your business!</div>
+      <div class="text-muted">Goods sold in good condition are not returnable.</div>
+    </div>
+
+    <div class="text-center small mt-3">
+      <div>ZABACH ENTERPRISES LIMITED</div>
+      <div>P.O. BOX 823-80108 KILIFI</div>
+      <div>Tel: 0772058479 / +254726138657</div>
+      <div>PIN: P051619559Z</div>
+    </div>
+  </div>
+
+  <div class="text-center mt-3 d-print-none">
+    <button class="btn btn-primary" onclick="window.print()">Print</button>
+    <a class="btn btn-outline-secondary" href="{{ url_for('sale_new') }}">New Sale</a>
+  </div>
+</div>
+{% endblock %}

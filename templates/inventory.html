@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center">
+  {% block pagetitle %}Inventory{% endblock %}
+  <div>
+    {% if current_user.is_manager %}
+      <a class="btn btn-success" href="{{ url_for('item_new') }}">+ New Item</a>
+    {% endif %}
+    {% if current_user.is_manager %}
+      <a class="btn btn-success" href="{{ url_for('item_new') }}">+ New Item</a>
+      <a class="btn btn-outline-success" href="{{ url_for('items_bulk') }}">Bulk Upload</a>
+    {% endif %}
+
+  </div>
+</div>
+<form class="row g-2 my-3" method="get">
+  <div class="col-auto"><input name="q" value="{{ q }}" class="form-control" placeholder="Search title/author"></div>
+  <div class="col-auto"><button class="btn btn-outline-secondary">Search</button></div>
+</form>
+<table class="table table-striped">
+  <thead><tr><th>Title</th><th>Author</th><th>Category</th><th>Price</th><th>Qty</th><th></th></tr></thead>
+  <tbody>
+  {% for i in items %}
+    <tr>
+      <td>{{ i.title }}</td>
+      <td>{{ i.author or '—' }}</td>
+      <td>{{ i.category.name if i.category else '—' }}</td>
+      <td>KES {{ '%.2f'|format(i.price) }}</td>
+      <td>
+        {% if i.quantity < i.reorder_level %}
+          <span class="badge bg-danger">{{ i.quantity }}</span>
+        {% else %}
+          {{ i.quantity }}
+        {% endif %}
+      </td>
+      <td>
+        {% if current_user.is_manager %}
+          <a class="btn btn-sm btn-outline-primary" href="{{ url_for('item_edit', item_id=i.id) }}">Edit</a>
+          <a class="btn btn-sm btn-outline-warning" href="{{ url_for('item_price', item_id=i.id) }}">Price</a>
+        {% endif %}
+      </td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

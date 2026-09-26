@@ -1,0 +1,209 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard — ZABACH{% endblock %}
+{% block content %}
+
+<h3 class="mb-1">Dashboard</h3>
+<p class="text-muted mb-4">Welcome back, {{ current_user.username }}.</p>
+
+{# ---------- Shortcuts ---------- #}
+<div class="shortcut-grid mb-4">
+  <a class="shortcut" href="{{ url_for('sale_new') }}">
+    <div class="shortcut-icon">₪</div>
+    <div class="shortcut-title">New Sale</div>
+    <div class="shortcut-desc">Ring up a customer</div>
+  </a>
+  <a class="shortcut" href="{{ url_for('catalogue') }}">
+    <div class="shortcut-icon">☰</div>
+    <div class="shortcut-title">Catalogue</div>
+    <div class="shortcut-desc">Browse all {{ catalogue_total }} items</div>
+  </a>
+  <a class="shortcut" href="{{ url_for('inventory') }}">
+    <div class="shortcut-icon">▤</div>
+    <div class="shortcut-title">Inventory</div>
+    <div class="shortcut-desc">{{ stocked_total }} items in stock</div>
+  </a>
+  <a class="shortcut" href="{{ url_for('quotations') }}">
+    <div class="shortcut-icon">✎</div>
+    <div class="shortcut-title">Quotation</div>
+    <div class="shortcut-desc">Quote a customer</div>
+  </a>
+  <a class="shortcut" href="{{ url_for('count') }}">
+    <div class="shortcut-icon">↻</div>
+    <div class="shortcut-title">Physical Count</div>
+    <div class="shortcut-desc">Submit a stock count</div>
+  </a>
+  {% if current_user.is_manager %}
+  <a class="shortcut" href="{{ url_for('stock_new') }}">
+    <div class="shortcut-icon">＋</div>
+    <div class="shortcut-title">Add Stock</div>
+    <div class="shortcut-desc">Record a purchase</div>
+  </a>
+  <a class="shortcut" href="{{ url_for('approvals') }}">
+    <div class="shortcut-icon">✓</div>
+    <div class="shortcut-title">Approvals</div>
+    <div class="shortcut-desc">Review pending items</div>
+  </a>
+  <a class="shortcut" href="{{ url_for('sales_report') }}">
+    <div class="shortcut-icon">▦</div>
+    <div class="shortcut-title">Sales Report</div>
+    <div class="shortcut-desc">See today's numbers</div>
+  </a>
+  {% endif %}
+</div>
+
+{# ---------- KPI cards ---------- #}
+<div class="row g-3">
+  <div class="col-md">
+    <div class="card p-3">
+      <div class="text-muted small">Items in Stock</div>
+      <div class="fs-3">{{ total_items }}</div>
+    </div>
+  </div>
+  <div class="col-md">
+    <div class="card p-3">
+      <div class="text-muted small">Stock Value</div>
+      <div class="fs-3">KES {{ '%.0f'|format(total_value) }}</div>
+    </div>
+  </div>
+  <div class="col-md">
+    <div class="card p-3">
+      <div class="text-muted small">Catalogue / Stocked</div>
+      <div class="fs-3">{{ catalogue_total }} / {{ stocked_total }}</div>
+    </div>
+  </div>
+  <div class="col-md">
+    <div class="card p-3">
+      <div class="text-muted small">Today's Sales</div>
+      <div class="fs-3">KES {{ '%.0f'|format(today_sales) }}</div>
+    </div>
+  </div>
+  <div class="col-md">
+    <div class="card p-3">
+      <div class="text-muted small">Today's Profit</div>
+      <div class="fs-3">KES {{ '%.0f'|format(today_profit) }}</div>
+    </div>
+  </div>
+</div>
+
+{# ---------- Pending alerts ---------- #}
+{% if current_user.is_manager and pending_counts %}
+<div class="alert alert-warning mt-4 mb-0">
+  <strong>{{ pending_counts }}</strong> inventory count(s) awaiting your approval.
+  <a href="{{ url_for('approvals') }}" class="btn btn-sm btn-warning ms-2">Review</a>
+</div>
+{% endif %}
+
+{% if current_user.is_manager and pending_users_count %}
+<div class="alert alert-info mt-3 mb-0">
+  <strong>{{ pending_users_count }}</strong> new user registration(s) awaiting approval.
+  <a href="{{ url_for('users') }}" class="btn btn-sm btn-info ms-2">Review</a>
+</div>
+{% endif %}
+
+{# ---------- Low stock + most bought ---------- #}
+<div class="row mt-4">
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span>
+          <strong>Low Stock</strong>
+          {% if low_stock_total %}
+            <span class="badge bg-danger ms-1">{{ low_stock_total }}</span>
+          {% endif %}
+        </span>
+        <a href="{{ url_for('inventory') }}?low=1" class="small">View all →</a>
+      </div>
+      <div class="card-body p-0">
+        {% if not low_stock %}
+          <div class="text-center text-success py-4">
+            <div style="font-size: 2rem;">✓</div>
+            <div class="small">All items above reorder level</div>
+          </div>
+        {% else %}
+          {% set critical = low_stock | selectattr('quantity', 'equalto', 0) | list %}
+          {% set warnings = low_stock | rejectattr('quantity', 'equalto', 0) | list %}
+
+          {% if critical %}
+            <div class="px-3 pt-2 pb-1 small text-uppercase text-danger fw-bold">
+              Out of stock — {{ critical|length }}
+            </div>
+            {% for i in critical %}
+              <div class="d-flex justify-content-between align-items-center px-3 py-2 border-top">
+                <div class="text-truncate" style="max-width: 60%;">
+                  <div class="fw-semibold text-truncate">{{ i.title }}</div>
+                  <div class="small text-muted">{{ i.brand or (i.category.name if i.category else '') }}</div>
+                </div>
+                <div class="text-end">
+                  <span class="badge bg-danger me-2">0</span>
+                  {% if current_user.is_manager %}
+                    <a class="btn btn-sm btn-outline-danger"
+                       href="{{ url_for('stock_new') }}?item_id={{ i.id }}">Restock</a>
+                  {% endif %}
+                </div>
+              </div>
+            {% endfor %}
+          {% endif %}
+
+          {% if warnings %}
+            <div class="px-3 pt-3 pb-1 small text-uppercase text-warning fw-bold">
+              Below reorder — {{ warnings|length }}
+            </div>
+            {% for i in warnings %}
+              {% set pct = (i.quantity / i.reorder_level * 100) | round(0) | int %}
+              <div class="px-3 py-2 border-top">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                  <div class="text-truncate" style="max-width: 60%;">
+                    <div class="fw-semibold text-truncate">{{ i.title }}</div>
+                    <div class="small text-muted">{{ i.brand or (i.category.name if i.category else '') }}</div>
+                  </div>
+                  <div class="text-end small">
+                    <strong>{{ i.quantity }}</strong> / {{ i.reorder_level }}
+                  </div>
+                </div>
+                <div class="progress" style="height: 4px;">
+                  <div class="progress-bar bg-warning"
+                       style="width: {{ pct if pct < 100 else 100 }}%;"></div>
+                </div>
+              </div>
+            {% endfor %}
+          {% endif %}
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <strong>Most Bought</strong>
+        {% if current_user.is_manager %}
+          <a href="{{ url_for('sales_report') }}" class="small">Sales report →</a>
+        {% endif %}
+      </div>
+      <div class="card-body p-0">
+        {% if not most_bought %}
+          <div class="text-center text-muted py-4 small">No sales recorded yet</div>
+        {% else %}
+          {% set max_qty = most_bought[0][1] %}
+          {% for item, total in most_bought %}
+            <div class="px-3 py-2 {% if not loop.first %}border-top{% endif %}">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <div class="text-truncate" style="max-width: 70%;">
+                  <div class="fw-semibold text-truncate">{{ item.title }}</div>
+                  <div class="small text-muted">{{ item.brand or '' }}</div>
+                </div>
+                <span class="badge bg-primary">{{ total }} sold</span>
+              </div>
+              <div class="progress" style="height: 4px;">
+                <div class="progress-bar bg-primary"
+                     style="width: {{ (total / max_qty * 100) | round(0) | int }}%;"></div>
+              </div>
+            </div>
+          {% endfor %}
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

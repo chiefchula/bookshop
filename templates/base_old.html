@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>{% block title %}ZABACH ENTERPRISES{% endblock %}</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="{{ url_for('dashboard') }}">ZABACH ENTERPRISES</a>
+    {% if current_user.is_authenticated %}
+    <ul class="navbar-nav me-auto">
+  <li class="nav-item">
+    <a class="nav-link {{ 'active' if request.endpoint == 'dashboard' }}"
+       href="{{ url_for('dashboard') }}">Dashboard</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link {{ 'active' if request.endpoint in ['inventory', 'item_new', 'item_edit', 'item_price'] }}"
+       href="{{ url_for('inventory') }}">Inventory</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link {{ 'active' if request.endpoint in ['catalogue', 'catalogue_to_stock'] }}"
+       href="{{ url_for('catalogue') }}">Catalogue</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link {{ 'active' if request.endpoint in ['sale_new', 'sale_add', 'sale_remove', 'sale_clear', 'sale_complete', 'receipt'] }}"
+       href="{{ url_for('sale_new') }}">New Sale</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link {{ 'active' if request.endpoint in ['count'] }}"
+       href="{{ url_for('count') }}">Count</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link {{ 'active' if request.endpoint in ['quotations', 'quotation_new', 'quotation_edit'] }}"
+       href="{{ url_for('quotations') }}">Quotations</a>
+  </li>
+  {% if current_user.is_manager %}
+  <li class="nav-item">
+    <a class="nav-link {{ 'active' if request.endpoint in ['stock_new'] }}"
+       href="{{ url_for('stock_new') }}">Add Stock</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link {{ 'active' if request.endpoint in ['approvals', 'resolve_count'] }}"
+       href="{{ url_for('approvals') }}">Approvals</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link {{ 'active' if request.endpoint in ['sales_report'] }}"
+       href="{{ url_for('sales_report') }}">Sales</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link {{ 'active' if request.endpoint in ['users', 'user_approve', 'user_reject', 'user_toggle'] }}"
+       href="{{ url_for('users') }}">Users</a>
+  </li>
+  {% endif %}
+</ul>
+    <span class="navbar-text text-light me-3">
+      {{ current_user.username }} ({{ current_user.role }})
+    </span>
+    <a class="btn btn-outline-light btn-sm" href="{{ url_for('logout') }}">Logout</a>
+    {% endif %}
+  </div>
+</nav>
+<div class="container mt-4">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for cat, msg in messages %}
+      <div class="alert alert-{{ cat }} alert-dismissible fade show">{{ msg }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+    {% endfor %}
+  {% endwith %}
+  {% if error %}<div class="alert alert-danger">{{ error }}</div>{% endif %}
+  {% block content %}{% endblock %}
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>

@@ -1,16 +1,24 @@
 import os
+from pathlib import Path
 from dotenv import load_dotenv
 
-load_dotenv()
+# Load .env from the directory containing config.py, regardless of CWD
+env_path = Path(__file__).resolve().parent / '.env'
+load_dotenv(dotenv_path=env_path)
+
 
 class Config:
     SECRET_KEY = os.environ.get('SECRET_KEY', 'change-me-in-production')
-    _url = os.environ.get('DATABASE_URL', 'postgresql+psycopg2://charo:charongua89@localhost/bookshop')
 
-    # pythonanywhere / heroku give "postgres://" — SQLAlchemy 2.x rejects it
+    # Prefer DATABASE_URL from .env; fall back to a local SQLite file
+    _url = os.environ.get(
+        'DATABASE_URL',
+        'sqlite:///' + str(Path(__file__).resolve().parent / 'bookshop.db')
+    )
+
+    # Normalise common Postgres URL styles so you can switch back later if needed
     if _url.startswith("postgres://"):
         _url = _url.replace("postgres://", "postgresql+psycopg2://", 1)
-    # If it's "postgresql://" with no driver, force psycopg2
     elif _url.startswith("postgresql://"):
         _url = _url.replace("postgresql://", "postgresql+psycopg2://", 1)
 

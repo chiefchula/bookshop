@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+{% block title %}My Profile — ZABACH{% endblock %}
+{% block pagetitle %}My Profile{% endblock %}
+{% block content %}
+
+<div class="row g-4">
+
+  <div class="col-md-5">
+    <div class="card">
+      <div class="card-header"><strong>Account</strong></div>
+      <div class="card-body">
+        <div class="mb-2">
+          <div class="text-muted small">Username</div>
+          <div class="fw-semibold">{{ current_user.username }}</div>
+        </div>
+        <div class="mb-2">
+          <div class="text-muted small">Email</div>
+          <div>{{ current_user.email }}</div>
+        </div>
+        <div class="mb-2">
+          <div class="text-muted small">Role</div>
+          <div>
+            <span class="badge {{ 'bg-danger' if current_user.is_manager else 'bg-primary' }}">
+              {{ current_user.role }}
+            </span>
+          </div>
+        </div>
+        <div>
+          <div class="text-muted small">Member since</div>
+          <div>{{ current_user.created_at.strftime('%d %B %Y') }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-7">
+    <div class="card">
+      <div class="card-header"><strong>Change Password</strong></div>
+      <div class="card-body">
+        <form method="post" autocomplete="off">
+          {{ form.hidden_tag() }}
+
+          <div class="mb-3">
+            {{ form.current_password.label(class='form-label') }}
+            {{ form.current_password(class='form-control', autocomplete='current-password') }}
+            {% for e in form.current_password.errors %}
+              <div class="text-danger small">{{ e }}</div>
+            {% endfor %}
+          </div>
+
+          <div class="mb-3">
+            {{ form.new_password.label(class='form-label') }}
+            {{ form.new_password(class='form-control', autocomplete='new-password') }}
+            {% for e in form.new_password.errors %}
+              <div class="text-danger small">{{ e }}</div>
+            {% endfor %}
+          </div>
+
+          <div class="mb-3">
+            {{ form.confirm.label(class='form-label') }}
+            {{ form.confirm(class='form-control', autocomplete='new-password') }}
+            {% for e in form.confirm.errors %}
+              <div class="text-danger small">{{ e }}</div>
+            {% endfor %}
+          </div>
+
+          <button class="btn btn-primary">{{ form.submit.label.text }}</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+{% if recent_sales %}
+<div class="card mt-4">
+  <div class="card-header"><strong>My Recent Sales</strong></div>
+  <div class="card-body p-0">
+    <table class="table table-sm mb-0">
+      <thead>
+        <tr>
+          <th>Ref</th><th>Customer</th><th class="text-end">Total</th><th>When</th><th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in recent_sales %}
+        <tr>
+          <td>{{ s.reference }}</td>
+          <td>{{ s.customer_name }}</td>
+          <td class="text-end">KES {{ '%.2f'|format(s.total) }}</td>
+          <td>{{ s.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+          <td><a href="{{ url_for('receipt', sale_id=s.id) }}">Receipt</a></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
+{% endblock %}

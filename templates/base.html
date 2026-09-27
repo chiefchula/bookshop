@@ -20,6 +20,9 @@
         <span class="sidebar-cta-icon">₪</span>
         <span class="sidebar-cta-label">NEW SALE</span>
       </a>
+      <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('profile') }}" title="My Profile">
+        {{ current_user.username }}
+      </a>
       <div class="sidebar-section">Main</div>
       <a class="sidebar-link" href="{{ url_for('dashboard') }}">Dashboard</a>
       <a class="sidebar-link" href="{{ url_for('inventory') }}">Inventory</a>
@@ -36,10 +39,12 @@
       {% endif %}
     </nav>
     <div class="sidebar-footer">
-      <div class="sidebar-user-name">{{ current_user.username }}</div>
-      <div class="sidebar-user-role">{{ current_user.role }}</div>
-      <a class="btn btn-sm btn-outline-light w-100 mt-2" href="{{ url_for('logout') }}">Logout</a>
-    </div>
+  <a href="{{ url_for('profile') }}" class="sidebar-user-link">
+    <div class="sidebar-user-name">{{ current_user.username }}</div>
+    <div class="sidebar-user-role">{{ current_user.role }}</div>
+  </a>
+  <a class="btn btn-sm btn-outline-light w-100 mt-2" href="{{ url_for('logout') }}">Logout</a>
+</div>
   </aside>
   <main class="main-area">
     <div class="topbar d-print-none">

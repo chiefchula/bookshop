@@ -73,3 +73,10 @@ class QuotationForm(FlaskForm):
     customer_contact = StringField('Contact', validators=[Optional(), Length(max=150)])
     valid_until = DateField('Valid Until', validators=[Optional()])
     submit = SubmitField('Create Quotation')
+
+class ChangePasswordForm(FlaskForm):
+    current_password = PasswordField('Current Password', validators=[DataRequired()])
+    new_password = PasswordField('New Password', validators=[DataRequired(), Length(min=6)])
+    confirm = PasswordField('Confirm New Password',
+                            validators=[DataRequired(), EqualTo('new_password')])
+    submit = SubmitField('Change Password')

@@ -950,6 +950,27 @@ def items_price_bulk():
     sample = 'title,category,new_price\nBEAKER 100ML,LABORATORY,450\n'
     return render_template('items_bulk.html', sample=sample)
 
+from forms import (..., ChangePasswordForm)
+
+@app.route('/profile', methods=['GET', 'POST'])
+@login_required
+def profile():
+    form = ChangePasswordForm()
+    if form.validate_on_submit():
+        if not current_user.check_password(form.current_password.data):
+            flash('Current password is incorrect.', 'danger')
+        else:
+            current_user.set_password(form.new_password.data)
+            db.session.commit()
+            flash('Password updated successfully.', 'success')
+            return redirect(url_for('profile'))
+
+    recent_sales = (Sale.query
+                    .filter_by(cashier_id=current_user.id)
+                    .order_by(Sale.created_at.desc())
+                    .limit(10).all())
+
+    return render_template('profile.html', form=form, recent_sales=recent_sales)
 
 if __name__ == '__main__':
     app.run(debug=True)

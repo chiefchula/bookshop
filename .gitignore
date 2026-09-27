@@ -1,1 +1,38 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+
+# Virtual environment
+venv/
+env/
+ENV/
+
+# Environment variables
+.env
+.env.local
+
+# SQLite database
 bookshop.db
+*.db
+*.sqlite
+*.sqlite3
+
+# Excel & generated files
+*.xlsx
+*.xls
+zabach_items.csv
+import_warnings.txt
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log

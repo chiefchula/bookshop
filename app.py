@@ -9,7 +9,7 @@ from config_postgre import Config
 from models import (db, User, Category, Item, InventoryCount, StockEntry,
                     Sale, SaleItem, PriceChange, Quotation, QuotationItem)
 from forms import (LoginForm, RegisterForm, UserForm, ItemForm, PriceChangeForm,
-                   StockEntryForm, CountForm, SaleForm, QuotationForm)
+                   StockEntryForm, CountForm, SaleForm, QuotationForm, ChangePasswordForm)
 
 import weasyprint
 
@@ -949,8 +949,6 @@ def items_price_bulk():
     # GET — show the upload form
     sample = 'title,category,new_price\nBEAKER 100ML,LABORATORY,450\n'
     return render_template('items_bulk.html', sample=sample)
-
-from forms import (..., ChangePasswordForm)
 
 @app.route('/profile', methods=['GET', 'POST'])
 @login_required

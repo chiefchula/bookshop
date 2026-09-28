@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 from dotenv import load_dotenv
+from datetime import timedelta
 
 # Load .env from the directory containing config.py, regardless of CWD
 env_path = Path(__file__).resolve().parent / '.env'
@@ -24,3 +25,6 @@ class Config:
 
     SQLALCHEMY_DATABASE_URI = _url
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    PERMANENT_SESSION_LIFETIME = timedelta(hours=12)   # absolute max
+    SESSION_IDLE_TIMEOUT = 30 * 60                     # 30 minutes idle
+    SESSION_REFRESH_EACH_REQUEST = True

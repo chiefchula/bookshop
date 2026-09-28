@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from functools import wraps
 from flask import (Flask, render_template, redirect, url_for, flash, request,
                    abort, session, jsonify)
@@ -20,6 +20,36 @@ db.init_app(app)
 
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
+
+
+@app.before_request
+def make_session_permanent():
+    session.permanent = True
+    app.permanent_session_lifetime = app.config['PERMANENT_SESSION_LIFETIME']
+
+
+@app.before_request
+def enforce_idle_timeout():
+    # Skip the check for static files and login/logout to avoid loops
+    if request.endpoint in ('static', 'login', 'logout'):
+        return
+
+    if not current_user.is_authenticated:
+        return
+
+    now = datetime.utcnow()
+    last = session.get('_last_seen')
+
+    if last:
+        last_dt = datetime.fromisoformat(last)
+        idle = now - last_dt
+        if idle.total_seconds() > app.config['SESSION_IDLE_TIMEOUT']:
+            logout_user()
+            session.clear()
+            flash('You were signed out due to inactivity. Please log in again.', 'warning')
+            return redirect(url_for('login'))
+
+    session['_last_seen'] = now.isoformat()
 
 
 @login_manager.user_loader
@@ -107,6 +137,7 @@ def register():
 @login_required
 def logout():
     logout_user()
+    session.clear()
     return redirect(url_for('login'))
 
 

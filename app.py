@@ -970,5 +970,102 @@ def profile():
 
     return render_template('profile.html', form=form, recent_sales=recent_sales)
 
+@app.route('/invoices')
+@login_required
+def invoices():
+    docs = Invoice.query.order_by(Invoice.created_at.desc()).all()
+    return render_template('invoice.html', docs=docs, mode='list')
+
+
+@app.route('/invoices/new', methods=['GET', 'POST'])
+@login_required
+def invoice_new():
+    form = InvoiceForm()
+    if form.validate_on_submit():
+        ref = f'INV{datetime.utcnow().strftime("%Y%m%d%H%M%S")}'
+        inv = Invoice(reference=ref,
+                      customer_name=form.customer_name.data,
+                      customer_contact=form.customer_contact.data,
+                      customer_address=form.customer_address.data,
+                      customer_pin=form.customer_pin.data,
+                      due_date=form.due_date.data,
+                      created_by=current_user.id)
+        db.session.add(inv)
+        db.session.commit()
+        return redirect(url_for('invoice_edit', iid=inv.id))
+    return render_template('invoice.html', form=form, mode='new')
+
+
+@app.route('/invoices/<int:iid>', methods=['GET', 'POST'])
+@login_required
+def invoice_edit(iid):
+    inv = db.session.get(Invoice, iid) or abort(404)
+    if request.method == 'POST':
+        if 'add_line' in request.form:
+            item_id = request.form.get('item_id', type=int)
+            qty = request.form.get('quantity', type=int) or 1
+            if item_id:
+                item = db.session.get(Item, item_id) or abort(404)
+                line = InvoiceItem(invoice_id=inv.id, item_id=item.id,
+                                   description=item.title,
+                                   quantity=qty, unit_price=item.price)
+                db.session.add(line)
+                db.session.flush()
+                inv.total = sum(float(x.unit_price) * x.quantity for x in inv.items)
+                db.session.commit()
+        elif 'remove_line' in request.form:
+            li = db.session.get(InvoiceItem, int(request.form['line_id']))
+            if li and li.invoice_id == inv.id:
+                db.session.delete(li)
+                db.session.commit()
+                inv.total = sum(float(x.unit_price) * x.quantity for x in inv.items)
+                db.session.commit()
+        elif 'mark_paid' in request.form:
+            inv.status = 'paid'
+            db.session.commit()
+        elif 'cancel' in request.form:
+            inv.status = 'cancelled'
+            db.session.commit()
+        return redirect(url_for('invoice_edit', iid=inv.id))
+
+    items = Item.query.filter(Item.is_catalogued == True).order_by('title').all()
+    return render_template('invoice.html', inv=inv, items=items, mode='edit')
+
+
+@app.route('/invoices/<int:iid>/delivery-note')
+@login_required
+def delivery_note(iid):
+    inv = db.session.get(Invoice, iid) or abort(404)
+    return render_template('delivery_note.html', inv=inv)
+
+
+# Convert quotation → invoice
+@app.route('/quotations/<int:qid>/invoice', methods=['POST'])
+@login_required
+def quotation_to_invoice(qid):
+    q = db.session.get(Quotation, qid) or abort(404)
+    ref = f'INV{datetime.utcnow().strftime("%Y%m%d%H%M%S")}'
+    inv = Invoice(reference=ref,
+                  customer_name=q.customer_name,
+                  customer_contact=q.customer_contact,
+                  quotation_id=q.id,
+                  created_by=current_user.id)
+    db.session.add(inv)
+    db.session.flush()
+    for li in q.items:
+        db.session.add(InvoiceItem(
+            invoice_id=inv.id,
+            item_id=li.item_id,
+            description=li.item.title,
+            quantity=li.quantity,
+            unit_price=li.unit_price,
+        ))
+    db.session.flush()
+    inv.total = sum(float(x.unit_price) * x.quantity for x in inv.items)
+    q.status = 'accepted'
+    db.session.commit()
+    flash(f'Invoice {ref} created from quotation {q.reference}.', 'success')
+    return redirect(url_for('invoice_edit', iid=inv.id))
+
 if __name__ == '__main__':
     app.run(debug=True)

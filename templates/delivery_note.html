@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="d-print-none mb-3">
+  <a href="{{ url_for('invoice_edit', iid=inv.id) }}" class="btn btn-sm btn-outline-secondary">← Back to invoice</a>
+  <button class="btn btn-sm btn-primary" onclick="window.print()">Print Delivery Note</button>
+</div>
+
+<div class="mx-auto" style="max-width: 720px;">
+  {% include '_letterhead.html' %}
+
+  <div class="text-center mb-2">
+    <h5 class="mb-0">DELIVERY NOTE</h5>
+    <div class="small text-muted">Ref: {{ inv.reference }} · Delivery against Invoice {{ inv.reference }}</div>
+  </div>
+
+  <div class="row small mb-3">
+    <div class="col-6">
+      <strong>Deliver To:</strong><br>
+      {{ inv.customer_name }}<br>
+      {{ inv.customer_address or '' }}<br>
+      {{ inv.customer_contact or '' }}
+    </div>
+    <div class="col-6 text-end">
+      <strong>Date:</strong> {{ inv.created_at.strftime('%Y-%m-%d') }}
+    </div>
+  </div>
+
+  <table class="table table-sm">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Description</th>
+        <th class="text-end">Qty Ordered</th>
+        <th class="text-end">Qty Delivered</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for li in inv.items %}
+      <tr>
+        <td>{{ loop.index }}</td>
+        <td>{{ li.description or li.item.title }}</td>
+        <td class="text-end">{{ li.quantity }}</td>
+        <td class="text-end">{{ li.quantity }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <div class="small mt-3">
+    Goods received in good condition. Please sign below.
+  </div>
+
+  <div class="row mt-5">
+    <div class="col-6">
+      <div class="border-top pt-1 small">Delivered by: ______________________</div>
+    </div>
+    <div class="col-6">
+      <div class="border-top pt-1 small">Received by: ______________________</div>
+    </div>
+  </div>
+  <div class="row mt-4">
+    <div class="col-6">
+      <div class="border-top pt-1 small">Date: ______________________</div>
+    </div>
+    <div class="col-6">
+      <div class="border-top pt-1 small">Signature &amp; Stamp</div>
+    </div>
+  </div>
+</div>
+{% endblock %}

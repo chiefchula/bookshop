@@ -30,6 +30,10 @@
       <div class="sidebar-section">Operations</div>
       <a class="sidebar-link" href="{{ url_for('count') }}">Physical Count</a>
       <a class="sidebar-link" href="{{ url_for('quotations') }}">Quotations</a>
+      <a class="sidebar-link {{ 'active' if request.endpoint in ['invoices','invoice_new','invoice_edit'] }}"
+          href="{{ url_for('invoices') }}">
+          Invoices
+      </a>
       {% if current_user.is_manager %}
       <div class="sidebar-section">Manager</div>
       <a class="sidebar-link" href="{{ url_for('stock_new') }}">Add Stock</a>

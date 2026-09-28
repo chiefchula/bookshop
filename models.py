@@ -160,3 +160,35 @@ class QuotationItem(db.Model):
     unit_price = db.Column(db.Numeric(10, 2), nullable=False)
 
     item = db.relationship('Item')
+
+class Invoice(db.Model):
+    __tablename__ = 'invoices'
+    id = db.Column(db.Integer, primary_key=True)
+    reference = db.Column(db.String(30), unique=True, nullable=False)
+    customer_name = db.Column(db.String(150), nullable=False)
+    customer_contact = db.Column(db.String(150))
+    customer_address = db.Column(db.Text)
+    customer_pin = db.Column(db.String(20))          # KRA PIN for VAT
+    total = db.Column(db.Numeric(12, 2), default=0)
+    status = db.Column(db.String(20), default='issued')   # issued/paid/cancelled
+    due_date = db.Column(db.DateTime)
+    quotation_id = db.Column(db.Integer, db.ForeignKey('quotations.id'))
+    sale_id = db.Column(db.Integer, db.ForeignKey('sales.id'))
+    created_by = db.Column(db.Integer, db.ForeignKey('users.id'))
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    created_by_user = db.relationship('User')
+    items = db.relationship('InvoiceItem', backref='invoice',
+                            cascade='all, delete-orphan')
+
+
+class InvoiceItem(db.Model):
+    __tablename__ = 'invoice_items'
+    id = db.Column(db.Integer, primary_key=True)
+    invoice_id = db.Column(db.Integer, db.ForeignKey('invoices.id'), nullable=False)
+    item_id = db.Column(db.Integer, db.ForeignKey('items.id'), nullable=False)
+    description = db.Column(db.String(255))          # snapshot of title at time of issue
+    quantity = db.Column(db.Integer, nullable=False)
+    unit_price = db.Column(db.Numeric(10, 2), nullable=False)
+
+    item = db.relationship('Item')

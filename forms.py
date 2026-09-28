@@ -80,3 +80,11 @@ class ChangePasswordForm(FlaskForm):
     confirm = PasswordField('Confirm New Password',
                             validators=[DataRequired(), EqualTo('new_password')])
     submit = SubmitField('Change Password')
+
+class InvoiceForm(FlaskForm):
+    customer_name = StringField('Customer Name', validators=[DataRequired(), Length(max=150)])
+    customer_contact = StringField('Contact Person / Phone', validators=[Optional(), Length(max=150)])
+    customer_address = TextAreaField('Address', validators=[Optional()])
+    customer_pin = StringField('KRA PIN', validators=[Optional(), Length(max=20)])
+    due_date = DateField('Due Date', validators=[Optional()])
+    submit = SubmitField('Create Invoice')

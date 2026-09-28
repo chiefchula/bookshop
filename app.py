@@ -7,9 +7,10 @@ from flask_login import (LoginManager, login_user, logout_user, login_required,
 from sqlalchemy import func, or_
 from config_postgre import Config
 from models import (db, User, Category, Item, InventoryCount, StockEntry,
-                    Sale, SaleItem, PriceChange, Quotation, QuotationItem)
+                    Sale, SaleItem, PriceChange, Quotation, QuotationItem,  QuotationItem,
+                    Invoice, InvoiceItem)
 from forms import (LoginForm, RegisterForm, UserForm, ItemForm, PriceChangeForm,
-                   StockEntryForm, CountForm, SaleForm, QuotationForm, ChangePasswordForm)
+                   StockEntryForm, CountForm, SaleForm, QuotationForm, ChangePasswordForm, InvoiceForm)
 
 import weasyprint
 
